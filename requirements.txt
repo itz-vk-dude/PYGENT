@@ -1,0 +1,6 @@
+pyserial==3.5
+opencv-python
+numpy
+pandas
+scikit-learn
+pybullet
