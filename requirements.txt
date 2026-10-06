@@ -1,6 +1,12 @@
+flask
 pyserial==3.5
 opencv-python
 numpy
 pandas
 scikit-learn
 pybullet
+requests
+pyttsx3
+joblib
+python-dotenv
+pytest

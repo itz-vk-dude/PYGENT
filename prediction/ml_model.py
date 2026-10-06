@@ -3,10 +3,15 @@ import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from typing import Tuple, Dict, Any
+import config
 
 class MLPredictor:
-    def __init__(self, model_path: str = r"C:\PYGENT\prediction\model.pkl"):
-        self.model_path = model_path
+    """
+    Random Forest Regressor ML Trajectory Predictor.
+    Uses relative configurable model path.
+    """
+    def __init__(self, model_path: str = None):
+        self.model_path = model_path or config.ML_MODEL_PATH
         self.model = RandomForestRegressor(n_estimators=50, random_state=42)
         self.is_trained = False
         self.load_model()
@@ -39,8 +44,11 @@ class MLPredictor:
             features.get("ay", 0.0)
         ]])
 
-        pred = self.model.predict(feat_vector)
-        return float(pred[0][0]), float(pred[0][1])
+        try:
+            pred = self.model.predict(feat_vector)
+            return float(pred[0][0]), float(pred[0][1])
+        except Exception:
+            return float(x + vx * dt), float(y + vy * dt)
 
     def save_model(self):
         os.makedirs(os.path.dirname(self.model_path), exist_ok=True)

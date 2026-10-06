@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHYGENT — Continual Learning</title>
+    <style>
+        body { background: #0b0f19; color: #e2e8f0; font-family: system-ui; padding: 20px; }
+        header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0,242,254,0.2); padding-bottom: 10px; margin-bottom: 20px; }
+        header a { color: #00f2fe; text-decoration: none; margin-left: 15px; }
+        .card { background: rgba(18,26,43,0.75); border: 1px solid rgba(0,242,254,0.2); border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        button { background: #ef4444; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>📊 CONTINUAL LEARNING & MODEL UPDATES</h2>
+        <nav><a href="/">HOME</a><a href="/world">WORLD</a><a href="/twin">TWIN</a><a href="/agent">AGENT</a><a href="/robot">ROBOT</a><a href="/learning">LEARNING</a><a href="/system">SYSTEM</a></nav>
+    </header>
+    <div class="card">
+        <h3>Learning Metrics</h3>
+        <p>Total Experiences Logged: <strong id="exp" style="color:#00f2fe;">0</strong></p>
+        <p>Active Model Version: <span id="ver">v1.0</span></p>
+        <p>Validation Accuracy Score: <span id="val">0.95</span></p>
+    </div>
+    <div class="card">
+        <h3>Model Management & Rollback</h3>
+        <button onclick="rollback()">Rollback to Previous Model Version</button>
+    </div>
+    <script>
+        function rollback() {
+            fetch('/api/learning/rollback', {method:'POST'}).then(r => r.json()).then(res => alert('Rollback result: ' + res.status));
+        }
+        const ev = new EventSource('/api/stream/state');
+        ev.onmessage = e => {
+            const d = JSON.parse(e.data);
+            if(d && d.learning) {
+                document.getElementById('exp').innerText = d.learning.total_experiences || 0;
+            }
+        };
+    </script>
+</body>
+</html>

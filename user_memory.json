@@ -1,0 +1,32 @@
+{
+  "user_name": "Boss",
+  "learned_slang": {
+    "semma": {
+      "meaning": "super/great",
+      "count": 1
+    },
+    "vanakkam": {
+      "meaning": "respectful greeting",
+      "count": 1
+    },
+    "nandri": {
+      "meaning": "thank you",
+      "count": 1
+    },
+    "kandippa": {
+      "meaning": "definitely/certainly",
+      "count": 1
+    }
+  },
+  "user_facts": [],
+  "chat_history": [
+    {
+      "role": "user",
+      "content": "PHYGENT, move your arm left"
+    },
+    {
+      "role": "assistant",
+      "content": "Kandippa Boss! Robotic arm-a left side-la 50mm move pannitten."
+    }
+  ]
+}

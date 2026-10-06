@@ -1,46 +1,37 @@
-import numpy as np
-from sklearn.ensemble import IsolationForest
+import time
 from typing import Dict, Any
 
 class DataQualityChecker:
-    def __init__(self, contamination: float = 0.05):
-        self.model = IsolationForest(contamination=contamination, random_state=42)
-        self.is_fitted = False
+    """
+    Data Quality Audit Module.
+    Validates physical data consistency, range bounds, maximum velocity sanity, and latency.
+    CRITICAL RULE: BAD DATA -> DO NOT AUTOMATICALLY ACT.
+    """
+    def __init__(self, max_speed_px_per_sec: float = 2000.0, max_stale_sec: float = 2.0):
+        self.max_speed = max_speed_px_per_sec
+        self.max_stale_sec = max_stale_sec
 
-    def validate_range(self, data: Dict[str, Any], max_w: float = 1920.0, max_h: float = 1080.0, max_speed: float = 5000.0) -> bool:
-        """
-        Validates spatial coordinates and physical dynamic bounds.
-        """
-        x, y = data.get("x", 0.0), data.get("y", 0.0)
-        speed = data.get("speed", 0.0)
+    def check_quality(self, perception_data: Dict[str, Any]) -> Dict[str, Any]:
+        if not perception_data:
+            return {"status": "BAD_DATA", "reason": "Empty perception state", "allow_action": False}
 
-        if not (0.0 <= x <= max_w and 0.0 <= y <= max_h):
-            return False
-        if abs(speed) > max_speed:
-            return False
-        return True
+        if not perception_data.get("detected", False) and not perception_data.get("person_present", False):
+            return {"status": "NO_DETECTION", "reason": "No active objects/persons detected", "allow_action": False}
 
-    def check_quality(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Evaluates data quality. Returns status 'NORMAL' or 'ANOMALY'.
-        """
-        if not self.validate_range(data):
-            return {"status": "ANOMALY", "reason": "out_of_bounds", "confidence": 0.0}
+        # Check timestamp staleness
+        ts = perception_data.get("timestamp", 0.0)
+        if ts > 0 and (time.time() - ts) > self.max_stale_sec:
+            return {"status": "STALE_DATA", "reason": f"Data latency higher than {self.max_stale_sec}s", "allow_action": False}
 
-        if self.is_fitted:
-            features = np.array([[
-                data.get("x", 0.0), data.get("y", 0.0),
-                data.get("vx", 0.0), data.get("vy", 0.0),
-                data.get("speed", 0.0), data.get("direction", 0.0)
-            ]])
-            pred = self.model.predict(features)
-            if pred[0] == -1:
-                return {"status": "ANOMALY", "reason": "isolation_forest_outlier", "confidence": 0.3}
+        # Check speed bounds
+        speed = perception_data.get("speed", 0.0)
+        if speed > self.max_speed:
+            return {"status": "IMPOSSIBLE_VELOCITY", "reason": f"Speed {speed:.1f} px/s exceeds maximum {self.max_speed} px/s", "allow_action": False}
 
-        return {"status": "NORMAL", "reason": "valid", "confidence": 0.95}
+        # Check coordinate range sanity
+        x = perception_data.get("x", 0.0)
+        y = perception_data.get("y", 0.0)
+        if x < -1000.0 or x > 2000.0 or y < -1000.0 or y > 2000.0:
+            return {"status": "OUT_OF_RANGE", "reason": f"Coordinates ({x}, {y}) out of plausible visual range", "allow_action": False}
 
-    def fit_baseline(self, dataset: np.ndarray):
-        """Fits Isolation Forest baseline model on historical normal dataset."""
-        if len(dataset) >= 10:
-            self.model.fit(dataset)
-            self.is_fitted = True
+        return {"status": "NORMAL", "reason": "Data passed all quality checks", "allow_action": True}

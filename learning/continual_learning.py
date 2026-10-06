@@ -1,21 +1,24 @@
-from data.database import DatabaseManager
-from prediction.ml_model import MLPredictor
-from learning.dataset_manager import DatasetManager
-from learning.model_updater import ModelUpdater
 from typing import Dict, Any
+from learning.model_updater import ModelUpdater
+import config
 
 class ContinualLearningEngine:
-    def __init__(self, db_manager: DatabaseManager, ml_predictor: MLPredictor):
-        self.dataset_manager = DatasetManager(db_manager)
-        self.updater = ModelUpdater(ml_predictor)
+    """
+    Continual Learning Engine for PHYGENT.
+    Logs verified physical experiences and periodically triggers retraining when experience threshold is reached.
+    """
+    def __init__(self, db_manager, active_ml_predictor):
+        self.db = db_manager
+        self.ml_predictor = active_ml_predictor
+        self.updater = ModelUpdater()
         self.experience_counter = 0
+        self.batch_size = config.CONTINUAL_LEARNING_BATCH_SIZE
 
-    def process_experience(self, clean_state: Dict[str, Any], evaluation_result: Dict[str, Any]):
-        """
-        Logs validated physical experience and triggers online model update periodically.
-        """
-        self.experience_counter += 1
-        
-        if self.experience_counter % 10 == 0:
-            X, y = self.dataset_manager.prepare_training_matrices()
-            self.updater.retrain_model(X, y)
+    def process_experience(self, perception_data: Dict[str, Any], evaluation: Dict[str, Any]):
+        if evaluation.get("status") in ("SUCCESS", "PARTIAL"):
+            self.experience_counter += 1
+
+        if self.experience_counter >= self.batch_size:
+            res = self.updater.update_model(self.ml_predictor, self.db)
+            print(f"[ContinualLearning] Batch retrain trigger: {res['reason']}")
+            self.experience_counter = 0

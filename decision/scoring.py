@@ -1,19 +1,19 @@
 from typing import Dict, Any
 
 class ActionScorer:
-    def __init__(self, w_error: float = 0.60, w_time: float = 0.25, w_cost: float = 0.15):
-        self.w_error = w_error
-        self.w_time = w_time
-        self.w_cost = w_cost
+    """
+    Multi-Factor Action Scorer.
+    Calculates cost score balancing prediction error, movement distance, execution time, and safety margins.
+    """
+    def __init__(self, error_weight: float = 2.0, time_weight: float = 1.0, distance_weight: float = 0.5):
+        self.error_weight = error_weight
+        self.time_weight = time_weight
+        self.distance_weight = distance_weight
 
     def calculate_score(self, sim_result: Dict[str, Any]) -> float:
-        """
-        Computes composite decision score. Lower score is better.
-        Score = w_error * position_error + w_time * execution_time + w_cost * (movement_cost / 10.0)
-        """
-        err = sim_result.get("position_error", 0.0)
-        t = sim_result.get("execution_time", 0.0)
-        cost = sim_result.get("movement_cost", 0.0)
+        error = sim_result.get("predicted_error", 5.0)
+        time_sec = sim_result.get("estimated_time", 1.0)
+        dist = sim_result.get("distance", 100.0)
 
-        score = (self.w_error * err) + (self.w_time * t * 10.0) + (self.w_cost * (cost / 10.0))
+        score = (self.error_weight * error) + (self.time_weight * time_sec) + (self.distance_weight * (dist / 10.0))
         return float(score)

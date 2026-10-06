@@ -1,16 +1,15 @@
 import math
-from typing import Dict, Any
+from typing import Tuple, Dict, Any
 
 class FeedbackComparator:
-    def compare(self, hybrid_pred: tuple, actual_pos: tuple) -> Dict[str, Any]:
-        """
-        Calculates position error = sqrt((pred_x - actual_x)^2 + (pred_y - actual_y)^2)
-        """
-        pred_x, pred_y = hybrid_pred
-        act_x, act_y = actual_pos
-        error = math.sqrt((pred_x - act_x)**2 + (pred_y - act_y)**2)
+    """
+    Compares predicted target (hybrid_pred) against verified real outcome.
+    Calculates Euclidean error in pixels/mm.
+    """
+    def compare(self, predicted_pos: Tuple[float, float], actual_pos: Tuple[float, float]) -> Dict[str, Any]:
+        error = math.sqrt((predicted_pos[0] - actual_pos[0])**2 + (predicted_pos[1] - actual_pos[1])**2)
         return {
-            "predicted": hybrid_pred,
-            "actual": actual_pos,
-            "error_px": error
+            "predicted_pos": predicted_pos,
+            "actual_pos": actual_pos,
+            "error_px": round(error, 2)
         }

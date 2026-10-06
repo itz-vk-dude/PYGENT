@@ -1,15 +1,10 @@
-from typing import Tuple, Dict, Any
+from typing import Dict, Any, Tuple
 
 class PhysicsPredictor:
-    def __init__(self, g: float = 9.81):
-        self.g = g
-
+    """
+    Kinematic Constant-Acceleration Physics Trajectory Predictor.
+    """
     def predict(self, features: Dict[str, Any], dt: float = 0.5) -> Tuple[float, float]:
-        """
-        Calculates future (x, y) coordinates using classical kinematics equations:
-        x(t) = x0 + vx*t + 0.5*ax*t^2
-        y(t) = y0 + vy*t + 0.5*ay*t^2
-        """
         x = features.get("x", 0.0)
         y = features.get("y", 0.0)
         vx = features.get("vx", 0.0)
@@ -17,7 +12,8 @@ class PhysicsPredictor:
         ax = features.get("ax", 0.0)
         ay = features.get("ay", 0.0)
 
-        future_x = x + vx * dt + 0.5 * ax * (dt ** 2)
-        future_y = y + vy * dt + 0.5 * ay * (dt ** 2)
+        # Kinematic equation: s = ut + 0.5 * a * t^2
+        pred_x = x + vx * dt + 0.5 * ax * (dt ** 2)
+        pred_y = y + vy * dt + 0.5 * ay * (dt ** 2)
 
-        return float(future_x), float(future_y)
+        return float(pred_x), float(pred_y)

@@ -1,8 +1,11 @@
+from typing import Dict, Any, Tuple
 from prediction.ml_model import MLPredictor
 from prediction.physics_model import PhysicsPredictor
-from typing import Dict, Any, Tuple
 
 class HybridPredictor:
+    """
+    Hybrid Predictor combining Machine Learning (Random Forest) and Physics Kinematics.
+    """
     def __init__(self, ml_weight: float = 0.5, physics_weight: float = 0.5):
         self.ml_predictor = MLPredictor()
         self.physics_predictor = PhysicsPredictor()

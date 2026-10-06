@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHYGENT — Robotic Control</title>
+    <style>
+        body { background: #0b0f19; color: #e2e8f0; font-family: system-ui; padding: 20px; }
+        header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0,242,254,0.2); padding-bottom: 10px; margin-bottom: 20px; }
+        header a { color: #00f2fe; text-decoration: none; margin-left: 15px; }
+        .card { background: rgba(18,26,43,0.75); border: 1px solid rgba(0,242,254,0.2); border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 15px; margin-top: 15px; }
+        button { padding: 12px 24px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; color: #fff; }
+        .home { background: #4facfe; } .pause { background: #f59e0b; } .stop { background: #ef4444; } .resume { background: #10b981; }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>🤖 ROBOT HARDWARE & OVERRIDE</h2>
+        <nav><a href="/">HOME</a><a href="/world">WORLD</a><a href="/twin">TWIN</a><a href="/agent">AGENT</a><a href="/robot">ROBOT</a><a href="/learning">LEARNING</a><a href="/system">SYSTEM</a></nav>
+    </header>
+    <div class="card">
+        <h3>Joint Telemetry (J1 - J5)</h3>
+        <p>J1 (Base): <span id="j1">90.0°</span> | J2 (Shoulder): <span id="j2">45.0°</span> | J3 (Elbow): <span id="j3">45.0°</span> | J4 (Wrist Pitch): <span id="j4">30.0°</span> | J5 (Wrist Roll): <span id="j5">90.0°</span></p>
+        <p>Gripper: <span id="grip">OPEN</span></p>
+    </div>
+    <div class="card">
+        <h3>System Control Triggers</h3>
+        <div class="btn-group">
+            <button class="home" onclick="ctrl('home')">HOME</button>
+            <button class="pause" onclick="ctrl('pause')">PAUSE</button>
+            <button class="stop" onclick="ctrl('stop')">STOP</button>
+            <button class="resume" onclick="ctrl('resume')">RESUME</button>
+        </div>
+    </div>
+    <script>
+        function ctrl(cmd) { fetch(`/api/robot/${cmd}`, {method:'POST'}); }
+        const ev = new EventSource('/api/stream/state');
+        ev.onmessage = e => {
+            const d = JSON.parse(e.data);
+            if(d && d.robot && d.robot.joints_measured) {
+                const j = d.robot.joints_measured;
+                document.getElementById('j1').innerText = j[0] + '°';
+                document.getElementById('j2').innerText = j[1] + '°';
+                document.getElementById('j3').innerText = j[2] + '°';
+                document.getElementById('j4').innerText = j[3] + '°';
+                document.getElementById('j5').innerText = j[4] + '°';
+            }
+        };
+    </script>
+</body>
+</html>
